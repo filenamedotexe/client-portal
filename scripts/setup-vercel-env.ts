@@ -1,4 +1,4 @@
-import * as Vercel from '@vercel/sdk';
+import { Vercel } from '@vercel/sdk';
 
 async function main() {
   const token = process.env.VERCEL_TOKEN;
@@ -6,8 +6,8 @@ async function main() {
     throw new Error('VERCEL_TOKEN environment variable is not set.');
   }
 
-  const client = Vercel.createClient({ token });
-  const project = await client.getProject('client-portal');
+  const client = new Vercel({ bearerToken: token });
+  const project = await client.projects.getProject({ idOrName: 'client-portal' });
 
   const envs = [
     { type: 'secret', key: 'DATABASE_URL', value: 'postgresql://neondb_owner:npg_F2fsxHgwln4j@ep-bitter-bread-a8browe6-pooler.eastus2.azure.neon.tech/neondb?sslmode=require', target: ['production', 'preview', 'development'] },
@@ -19,7 +19,10 @@ async function main() {
 
   for (const env of envs) {
     console.log(`Adding ${env.key}...`);
-    await client.addProjectEnvironmentVariable(project.id, env);
+    await client.projects.createProjectEnv({
+      idOrName: project.id,
+      requestBody: env
+    });
     console.log(`Added ${env.key} successfully.`);
   }
 
