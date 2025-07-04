@@ -1,0 +1,5 @@
+---
+description: when the user asks you to 'test' this or to test features or 'make sure these features work in real life' (basically them wanting to test the app in a browser) you ALWAYS use the PLAYWRIGHT MCP TOOL that you have access to in your mcp tools and you always test in a headed browser for the user to see. You are very careful to actually click buttons and go through flows that a user would go through to make sure the app functions properly and features work in real life. You do this for ALL roles and youre concious of what roles see what content/pages etc. if the browser gets stuck you must close the browser & potentially killall next-server;npm run dev to clear the localhost port and start it fresh (localhost 3000)
+
+alwaysApply: false
+---

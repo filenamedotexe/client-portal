@@ -37,7 +37,16 @@ export async function GET() {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json(requests)
+    // Add computed client names
+    const requestsWithClientNames = requests.map(request => ({
+      ...request,
+      client: {
+        ...request.client,
+        name: `${request.client.firstName || ''} ${request.client.lastName || ''}`.trim() || request.client.email
+      }
+    }))
+
+    return NextResponse.json(requestsWithClientNames)
   } catch (error) {
     console.error('[SERVICE_REQUESTS_GET]', error)
     return new NextResponse("Internal Error", { status: 500 })

@@ -1,0 +1,4 @@
+---
+description: When 'the user' is mentioned this is one of three roles 'client' 'manager' or 'admin'. when 'the/a client' is mentioned, that means a user with the 'client' role. the same for the/a manager or the/an admin. those are users in our auth provider with roles 'client' 'manager' or 'admin'
+alwaysApply: false
+---

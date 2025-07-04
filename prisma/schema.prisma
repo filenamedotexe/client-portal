@@ -8,179 +8,172 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  clerkId         String    @unique
-  email           String    @unique
-  name            String?
-  role            Role      @default(CLIENT)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  id               String           @id @default(cuid())
+  clerkId          String           @unique
+  email            String           @unique
+  name             String?
+  firstName        String?
+  lastName         String?
+  role             String           @default("CLIENT")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  formSubmissions  FormSubmission[]
   assignedServices Service[]
   serviceRequests  ServiceRequest[]
-  formSubmissions  FormSubmission[]
-}
-
-enum Role {
-  ADMIN
-  MANAGER
-  CLIENT
+  clientProfile    ClientProfile?
 }
 
 model ServiceTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  tasks       Task[]
-  milestones  Milestone[]
-  requiredForms FormTemplate[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  services    Service[]
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  milestones    Milestone[]
+  services      Service[]
+  tasks         Task[]
+  requiredForms FormTemplate[] @relation("FormTemplateToServiceTemplate")
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  order       Int
-  templateId  String
-  template    ServiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  
+  id           String          @id @default(cuid())
+  title        String
+  description  String?
+  order        Int
+  templateId   String
   serviceTasks ServiceTask[]
+  template     ServiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
 model Milestone {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  order       Int
-  templateId  String
-  template    ServiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  order             Int
+  templateId        String
+  template          ServiceTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
   serviceMilestones ServiceMilestone[]
 }
 
 model Service {
-  id          String   @id @default(cuid())
+  id          String             @id @default(cuid())
   name        String
   description String?
-  status      ServiceStatus @default(ACTIVE)
+  status      String             @default("ACTIVE")
   templateId  String
-  template    ServiceTemplate @relation(fields: [templateId], references: [id])
   clientId    String
-  client      User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  startDate   DateTime @default(now())
+  startDate   DateTime           @default(now())
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  tasks       ServiceTask[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  forms       AssignedForm[]
+  client      User               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  template    ServiceTemplate    @relation(fields: [templateId], references: [id])
   milestones  ServiceMilestone[]
   requests    ServiceRequest[]
-  forms       AssignedForm[]
-}
-
-enum ServiceStatus {
-  ACTIVE
-  PAUSED
-  COMPLETED
-  CANCELLED
+  tasks       ServiceTask[]
 }
 
 model ServiceTask {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   taskId      String
-  task        Task     @relation(fields: [taskId], references: [id])
-  status      TaskStatus @default(PENDING)
+  status      String    @default("PENDING")
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  task        Task      @relation(fields: [taskId], references: [id])
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
 model ServiceMilestone {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   milestoneId String
-  milestone   Milestone @relation(fields: [milestoneId], references: [id])
-  achieved    Boolean  @default(false)
+  achieved    Boolean   @default(false)
   achievedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  milestone   Milestone @relation(fields: [milestoneId], references: [id])
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 }
 
 model ServiceRequest {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String
-  status      RequestStatus @default(OPEN)
-  priority    RequestPriority @default(MEDIUM)
+  status      String    @default("OPEN")
+  priority    String    @default("MEDIUM")
   serviceId   String?
-  service     Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   clientId    String
-  client      User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   resolvedAt  DateTime?
-}
-
-enum RequestStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-}
-
-enum RequestPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
+  client      User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  service     Service?  @relation(fields: [serviceId], references: [id])
 }
 
 model FormTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  fields      Json     // Stores form builder configuration
-  isTemplate  Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  serviceTemplates ServiceTemplate[]
+  id               String            @id @default(cuid())
+  name             String
+  description      String?
+  fields           Json
+  isTemplate       Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   assignedForms    AssignedForm[]
   submissions      FormSubmission[]
+  serviceTemplates ServiceTemplate[] @relation("FormTemplateToServiceTemplate")
 }
 
 model AssignedForm {
-  id          String   @id @default(cuid())
-  formId      String
-  form        FormTemplate @relation(fields: [formId], references: [id])
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  dueDate     DateTime?
-  required    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  
+  id        String       @id @default(cuid())
+  formId    String
+  serviceId String
+  dueDate   DateTime?
+  required  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  service   Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  form      FormTemplate @relation(fields: [formId], references: [id])
+
   @@unique([formId, serviceId])
 }
 
 model FormSubmission {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   formId      String
-  form        FormTemplate @relation(fields: [formId], references: [id])
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  data        Json     // Stores form submission data
-  submittedAt DateTime @default(now())
+  data        Json
+  submittedAt DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  form        FormTemplate @relation(fields: [formId], references: [id])
+}
+
+model ClientProfile {
+  id                  String               @id @default(cuid())
+  userId              String               @unique
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName        String?
+  phoneNumber         String?
+  workHours           String?
+  logoUrl             String?
+  customFont          String?
+  brandColor1         String?
+  brandColor2         String?
+  brandColor3         String?
+  brandColor4         String?
+  socialMediaProfiles SocialMediaProfile[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model SocialMediaProfile {
+  id              String        @id @default(cuid())
+  profileId       String
+  profile         ClientProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform        String // e.g., 'Twitter', 'LinkedIn'
+  url             String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }

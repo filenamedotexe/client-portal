@@ -4,11 +4,17 @@ import { UserRole, rolePermissions } from '@/types/roles'
 export function useUserRole(): UserRole | null {
   const { user } = useUser()
   
-  // Get role from user metadata - you can customize this based on how you store roles
-  const role = user?.publicMetadata?.role as UserRole
+  let role = user?.publicMetadata?.role as string | undefined
   
-  // Default to 'client' if no role is set
-  return role || 'client'
+  if (typeof role === 'string') {
+    role = role.toLowerCase()
+    if (role in rolePermissions) {
+      return role as UserRole
+    }
+  }
+  
+  // Default to 'client' if no valid role is set
+  return 'client'
 }
 
 export function usePermissions() {

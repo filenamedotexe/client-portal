@@ -53,12 +53,27 @@ export async function GET() {
           include: {
             form: true
           }
+        },
+        _count: {
+          select: {
+            tasks: true,
+            milestones: true
+          }
         }
       },
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json(services)
+    // Add computed client name to services
+    const servicesWithClientNames = services.map(service => ({
+      ...service,
+      client: {
+        ...service.client,
+        name: `${service.client.firstName || ''} ${service.client.lastName || ''}`.trim() || service.client.email
+      }
+    }))
+
+    return NextResponse.json(servicesWithClientNames)
   } catch (error) {
     console.error('[SERVICES_GET]', error)
     return new NextResponse("Internal Error", { status: 500 })
@@ -144,7 +159,16 @@ export async function POST(req: Request) {
       }
     })
 
-    return NextResponse.json(service)
+    // Add computed client name
+    const serviceWithClientName = {
+      ...service,
+      client: {
+        ...service.client,
+        name: `${service.client.firstName || ''} ${service.client.lastName || ''}`.trim() || service.client.email
+      }
+    }
+
+    return NextResponse.json(serviceWithClientName)
   } catch (error) {
     console.error('[SERVICES_POST]', error)
     return new NextResponse("Internal Error", { status: 500 })

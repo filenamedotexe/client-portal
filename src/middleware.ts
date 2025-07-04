@@ -13,9 +13,6 @@ export default clerkMiddleware((auth, request) => {
     return
   }
 
-  // Protect all other routes - user must be signed in
-  auth.protect()
-
   // Additional role-based protection can be added here
   // This will be handled in the page components for better UX
 })
